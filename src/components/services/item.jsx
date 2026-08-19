@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import ResolvedIcon from "components/resolvedicon";
 import { useContext, useState } from "react";
+import { NetworkContext } from "utils/contexts/network";
 import { SettingsContext } from "utils/contexts/settings";
 import Docker from "widgets/docker/component";
 import Kubernetes from "widgets/kubernetes/component";
@@ -14,8 +15,16 @@ import Status from "./status";
 import Widget from "./widget";
 
 export default function Item({ service, groupName, useEqualHeights }) {
-  const hasLink = service.href && service.href !== "#";
+  const { network } = useContext(NetworkContext);
   const { settings } = useContext(SettingsContext);
+
+  // Resolve network-aware href: prefer internalHref on internal network, externalHref on external
+  const resolvedHref = network === "internal" && service.internalHref
+    ? service.internalHref
+    : network === "external" && service.externalHref
+      ? service.externalHref
+      : service.href;
+  const hasLink = resolvedHref && resolvedHref !== "#";
   const showStats = service.showStats === false ? false : settings.showStats;
   const statusStyle = service.statusStyle !== undefined ? service.statusStyle : settings.statusStyle;
   const [statsOpen, setStatsOpen] = useState(service.showStats);
@@ -45,7 +54,7 @@ export default function Item({ service, groupName, useEqualHeights }) {
           {service.icon &&
             (hasLink ? (
               <a
-                href={service.href}
+                href={resolvedHref}
                 target={service.target ?? settings.target ?? "_blank"}
                 rel="noreferrer"
                 className="shrink-0 flex items-center justify-center w-12 service-icon z-10"
@@ -61,7 +70,7 @@ export default function Item({ service, groupName, useEqualHeights }) {
 
           {hasLink ? (
             <a
-              href={service.href}
+              href={resolvedHref}
               target={service.target ?? settings.target ?? "_blank"}
               rel="noreferrer"
               className="flex-1 flex items-center justify-between rounded-r-md service-title-text"

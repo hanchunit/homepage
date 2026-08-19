@@ -30,6 +30,10 @@ const ThemeToggle = dynamic(() => import("components/toggles/theme"), {
   ssr: false,
 });
 
+const NetworkToggle = dynamic(() => import("components/toggles/network"), {
+  ssr: false,
+});
+
 const ColorToggle = dynamic(() => import("components/toggles/color"), {
   ssr: false,
 });
@@ -502,11 +506,16 @@ function Home({ initialSettings }) {
         {servicesAndBookmarksGroups}
 
         <div id="footer" className="flex flex-col mt-auto p-8 w-full">
-          <div id="style" className="flex w-full justify-end">
-            {!settings?.color && <ColorToggle />}
-            <Revalidate />
-            <SignOut />
-            {!settings.theme && <ThemeToggle />}
+          <div id="style" className="flex w-full justify-between items-center">
+            <div className="flex items-center gap-2">
+              <NetworkToggle />
+            </div>
+            <div className="flex items-center gap-2">
+              {!settings?.color && <ColorToggle />}
+              <Revalidate />
+              <SignOut />
+              {!settings.theme && <ThemeToggle />}
+            </div>
           </div>
 
           <div id="version" className="flex mt-4 w-full justify-end">

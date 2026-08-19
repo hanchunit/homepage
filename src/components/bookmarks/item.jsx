@@ -1,11 +1,20 @@
 import classNames from "classnames";
 import ResolvedIcon from "components/resolvedicon";
 import { useContext } from "react";
+import { NetworkContext } from "utils/contexts/network";
 import { SettingsContext } from "utils/contexts/settings";
 
 export default function Item({ bookmark, iconOnly = false }) {
-  const description = bookmark.description ?? new URL(bookmark.href).hostname;
+  const { network } = useContext(NetworkContext);
   const { settings } = useContext(SettingsContext);
+
+  // Resolve network-aware href
+  const resolvedHref = network === "internal" && bookmark.internalHref
+    ? bookmark.internalHref
+    : network === "external" && bookmark.externalHref
+      ? bookmark.externalHref
+      : bookmark.href;
+  const description = bookmark.description ?? (resolvedHref ? new URL(resolvedHref).hostname : "");
 
   return (
     <li
@@ -15,7 +24,7 @@ export default function Item({ bookmark, iconOnly = false }) {
       data-name={bookmark.name}
     >
       <a
-        href={bookmark.href}
+        href={resolvedHref}
         title={bookmark.name}
         rel="noreferrer"
         target={bookmark.target ?? settings.target ?? "_blank"}

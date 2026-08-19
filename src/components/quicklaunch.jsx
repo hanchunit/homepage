@@ -3,6 +3,7 @@ import { useTranslation } from "next-i18next/pages";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import useSWR from "swr";
+import { NetworkContext } from "utils/contexts/network";
 import { SettingsContext } from "utils/contexts/settings";
 
 import ResolvedIcon from "./resolvedicon";
@@ -17,6 +18,7 @@ const MOBILE_BUTTON_POSITIONS = {
 
 export default function QuickLaunch({ servicesAndBookmarks, searchString, setSearchString, isOpen, setSearching }) {
   const { t } = useTranslation();
+  const { network } = useContext(NetworkContext);
 
   const { settings } = useContext(SettingsContext);
   const { searchDescriptions = false, hideVisitURL = false } = settings?.quicklaunch ?? {};
@@ -142,7 +144,15 @@ export default function QuickLaunch({ servicesAndBookmarks, searchString, setSea
 
     if (searchString.trim().length === 0) setResults([]);
     else {
-      let newResults = servicesAndBookmarks.filter((r) => {
+      const resolveSearchHref = (r) => {
+        return network === "internal" && r.internalHref
+          ? r.internalHref
+          : network === "external" && r.externalHref
+            ? r.externalHref
+            : r.href;
+      };
+
+      let newResults = servicesAndBookmarks.map((r) => ({ ...r, href: resolveSearchHref(r) })).filter((r) => {
         const nameMatch = r.name.toLowerCase().includes(searchString);
         let descriptionMatch;
         if (searchDescriptions) {
